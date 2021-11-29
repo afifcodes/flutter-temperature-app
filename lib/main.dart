@@ -1,115 +1,193 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() =>
+    runApp(MaterialApp(debugShowCheckedModeBanner: false, home: MyApp()));
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
+  double _windSpeed = 1;
+  int index = 0;
+  List<IconData> icons = [Icons.ac_unit, Icons.cloud, Icons.water];
+  int iconIndex = 0;
+  late AnimationController _animationController;
+  late Animation _animation;
+
+  @override
+  void initState() {
+    _animationController =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 300));
+    _animation = Tween<double>(begin: 0.5, end: 1).animate(CurvedAnimation(
+        parent: _animationController, curve: Curves.fastOutSlowIn))
+      ..addListener(() {
+        setState(() {});
+      })
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          setState(() {
+            iconIndex = index;
+          });
+          _animationController.reverse();
+        }
+      });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  Widget mode({IconData? icon, int? n}) {
+    return GestureDetector(
+      onTap: () {
+        if (n != index) {
+          _animationController.forward();
+          setState(() {
+            index = n!;
+          });
+        }
+      },
+      child: Container(
+        height: 48,
+        width: 48,
+        decoration: BoxDecoration(
+            color: n == index ? Colors.blue : Colors.transparent,
+            shape: BoxShape.circle,
+            border: Border.all(
+                color: n == index ? Colors.blue : Colors.grey.shade800,
+                width: 2)),
+        child: Icon(icon!,
+            color: n == index ? Colors.white : Colors.grey.shade800),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+        backgroundColor: Color(0xff18181A),
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Color(0xff18181A),
+          leading: Container(
+              margin: EdgeInsets.only(left: 20), child: Icon(Icons.arrow_back)),
+        ),
+        body: Stack(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Transform.translate(
+                  offset: Offset(
+                      MediaQuery.of(context).size.width * _animation.value, 0),
+                  child: Icon(
+                    icons[iconIndex],
+                    color: Colors.blue,
+                    size: 400,
+                  ),
+                ),
+                Container(
+                    height: 250,
+                    decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                            colors: [
+                          Colors.blue.withOpacity(0.1 * _windSpeed),
+                          Color(0xff18181A).withOpacity(0)
+                        ],
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter))),
+              ],
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(30),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('TEMPERATURE °C',
+                          style: GoogleFonts.rubik(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700)),
+                      Text('22',
+                          style: GoogleFonts.robotoSlab(
+                              color: Colors.white,
+                              fontSize: 144,
+                              fontWeight: FontWeight.w800)),
+                      SizedBox(
+                        height: 64,
+                      ),
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 6,
+                          ),
+                          mode(icon: Icons.ac_unit, n: 0),
+                          SizedBox(
+                            width: 24,
+                          ),
+                          mode(icon: Icons.cloud, n: 1),
+                          SizedBox(
+                            width: 24,
+                          ),
+                          mode(icon: Icons.water, n: 2)
+                        ],
+                      ),
+                      SizedBox(
+                        height: 12,
+                      ),
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 12,
+                          ),
+                          Icon(Icons.air, color: Colors.grey.shade800),
+                          SizedBox(
+                            width: 12,
+                          ),
+                          Expanded(
+                            child: SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                  overlayShape: SliderComponentShape.noThumb,
+                                  trackHeight: 10,
+                                  activeTrackColor: Colors.blue,
+                                  inactiveTrackColor: Colors.grey.shade800,
+                                  overlayColor: Colors.transparent,
+                                  thumbColor: Colors.white),
+                              child: Slider(
+                                divisions: 3,
+                                value: _windSpeed,
+                                min: 1,
+                                max: 10,
+                                onChanged: (val) {
+                                  setState(() {
+                                    _windSpeed = val;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+        ));
   }
 }
